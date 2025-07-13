@@ -1,7 +1,7 @@
 import { Note, Point, EmbeddingData } from "../types";
 import { Vector3 } from "three";
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 export interface AddNoteResponse {
   points: {
