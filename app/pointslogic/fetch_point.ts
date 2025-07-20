@@ -1,7 +1,7 @@
-import { Note, Point, EmbeddingData } from "../types";
+import { Note, Point } from "../types";
 import { Vector3 } from "three";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export interface AddNoteResponse {
   points: {
@@ -11,6 +11,32 @@ export interface AddNoteResponse {
     z: number;
   }[];
   embeddings: number[][];
+}
+
+const GetNoteResponse = async (request: any) => {
+    //console.log(request);
+  console.log("Using BACKEND_URL:", BACKEND_URL);
+
+  let response: Response | null = null;
+  const urlVariants = [
+    `${BACKEND_URL}add_note`,
+    `${BACKEND_URL}/add_note`
+  ];
+
+  for (const url of urlVariants) {
+    try {
+      response = await fetch(url, request);
+      if (response.ok) break; // Exit loop on success
+    } catch (err) {
+      console.warn(`Fetch failed for URL: ${url}`, err);
+    }
+  }
+
+  if (!response || !response.ok) {
+    console.error("Unable to fetch first point from any URL variant.");
+    throw new Error(`API error: ${response?.statusText ?? "No response"}`);
+  }
+  return await response.json()
 }
 
 export const GetFirstPoint = async (note: Note): Promise<{ point: Point; embeddings: number[][] }> => {
@@ -28,14 +54,8 @@ export const GetFirstPoint = async (note: Note): Promise<{ point: Point; embeddi
       "prev_ids": [],
     }),
   }
-  //console.log(request);
-  const response = await fetch(`${BACKEND_URL}/add_note`, request);
 
-  if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
-  }
-
-  const data: AddNoteResponse = await response.json();
+  const data: AddNoteResponse = await GetNoteResponse(request);
 
   const p = data.points[0];
 
@@ -63,7 +83,7 @@ export const GetProjectedPoint = async (
   console.log("Sending note:", note_to_send);
   console.log("With previous embeddings:", previous.embeddings.length);
 
-  const response = await fetch(`${BACKEND_URL}/add_note`, {
+  const request = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -72,13 +92,9 @@ export const GetProjectedPoint = async (
     prev_points: previous.points.map((p) => [p.position.x, p.position.y, p.position.z]),
     prev_ids: previous.points.map((p) => p.id),
     }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
   }
 
-  const data: AddNoteResponse = await response.json();
+  const data: AddNoteResponse = await GetNoteResponse(request);
 
   const points = data.points.map((p) => ({
     id: p.id,
