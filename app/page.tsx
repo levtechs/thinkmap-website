@@ -4,11 +4,15 @@ import { useEffect, useState } from "react";
 import Environment from "./components/environment";
 import NoteDisplay from "./components/notedisplay";
 import NewNotePanel from "./components/newnote";
+import LoadingPanel from "./components/loading";
+import SleepingServerPanel from "./components/seversleeping";
+
 import Button from "./components/buttons";
 
 import { Note, Point } from "./types";
 import { GenerateBlankNote } from "./pointslogic/generate_point";
 import { GetFirstPoint, GetProjectedPoint } from "./pointslogic/fetch_point";
+import TestServer from "./pointslogic/test_server";
 
 export default function Home() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -18,15 +22,36 @@ export default function Home() {
     const [points, setPoints] = useState<Point[]>([]);
     const [embeddings, setEmbeddings] = useState<number[][]>([]);
 
+    const [isLoading, setLoading] = useState<boolean>(false);
+    const [isServerAwake, setServerAwake] = useState<boolean>(false)
 
     // === On Mount: Embed the blank note ===
     useEffect(() => {
         const init = async () => {
+            setLoading(true);
+
+            try {
+                const iSA = await TestServer();
+                if (!iSA) {
+                    console.error("Sever is asleep")
+                    setLoading(false)
+                    setServerAwake(false);
+                    return;
+                }
+            }
+            catch {
+                console.error("No environment variable for sever URL");
+                return;
+            }
+
+            setServerAwake(true);
             const blankNote = GenerateBlankNote();
             setSelectedNote(blankNote);
             const response = await GetFirstPoint(blankNote);
             setPoints([response.point]);
             setEmbeddings(response.embeddings);
+
+            setLoading(false);
         };
         init();
     }, []);
@@ -55,19 +80,63 @@ export default function Home() {
             {/* 3D environment background, centered */}
             <div
                 style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
+                    position: "relative",
                     width: "100%",
                     height: "100%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    zIndex: 0,
                 }}
             >
-                <Environment points={points} clickHandler={handleNoteClick}/>
+                {/* Environment (blurred when loading) */}
+                <div
+                    style={{
+                        filter: (isLoading || !isServerAwake) ? "blur(3px)" : "none",
+                        transition: "filter 0.3s ease",
+                        width: "100%",
+                        height: "100%",
+                    }}
+                >
+                    <Environment points={points} clickHandler={handleNoteClick} />
+                </div>
+
+                {/* Loading overlay */}
+                {isLoading && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            zIndex: 10,
+                            backdropFilter: "blur(2px)", // optional extra blur
+                        }}
+                    >
+                        <LoadingPanel />
+                    </div>
+                )}
+                {/* server sleeping overlay */}
+                {!isServerAwake && !isLoading && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            zIndex: 10,
+                            backdropFilter: "blur(2px)", // optional extra blur
+                        }}
+                    >
+                        <SleepingServerPanel />
+                    </div>
+                )}
             </div>
+
 
             {/* Header over canvas, centered top */}
             <div
@@ -124,7 +193,9 @@ export default function Home() {
                 {isPanelOpen && (
                     <NewNotePanel
                         submitNote={async (note: Note) => {
+                            setLoading(true);
                             const response = await GetProjectedPoint(note, {points, embeddings});
+                            setLoading(false);
                             setPoints(response.points);
                             setEmbeddings(response.embeddings);
                             setIsPanelOpen(false);
