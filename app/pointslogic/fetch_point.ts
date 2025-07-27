@@ -13,9 +13,7 @@ export interface AddNoteResponse {
   embeddings: number[][];
 }
 
-const GetNoteResponse = async (request: any) => {
-    //console.log(request);
-    console.log("Using BACKEND_URL:", BACKEND_URL);
+const GetNoteResponse = async (request: RequestInit) => {
 
     let response: Response | null = null;
     const urlVariants = [
@@ -43,7 +41,6 @@ export const GetFirstPoint = async (note: Note): Promise<{ point: Point; embeddi
     const note_to_send = {
         id: note.id,
         text: note.name,}
-    console.log("Sending note:", note_to_send);
     const request = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,7 +56,6 @@ export const GetFirstPoint = async (note: Note): Promise<{ point: Point; embeddi
 
     const p = data.points[0];
 
-    console.log("Received point:", p);
     return {
         point: {
             id: p.id,
@@ -80,8 +76,6 @@ export const GetProjectedPoint = async (
         id: note.id,
         text: `name: ${note.name} content: ${note.content}`,  // Map frontend `name` to backend `text`
     };
-    console.log("Sending note:", note_to_send);
-    console.log("With previous embeddings:", previous.embeddings.length);
 
     const request = {
         method: "POST",
@@ -105,7 +99,6 @@ export const GetProjectedPoint = async (
             content: "",
         },
     }));
-    console.log("Received number of entries:", data.points.length);
 
     return {
         points,

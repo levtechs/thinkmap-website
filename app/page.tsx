@@ -199,8 +199,6 @@ export default function Home() {
                             setLoading(false);
                             setPoints(response.points);
                             setEmbeddings(response.embeddings);
-                            console.log(points)
-                            console.log(embeddings)
                             setIsPanelOpen(false);
                         }}
                         closeNote={() => setIsPanelOpen(false)}

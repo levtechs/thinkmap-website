@@ -13,7 +13,6 @@ export default function NewNotePanel({ submitNote, closeNote}: NewNotePanelParam
     const [content, setContent] = useState("");
 
     const handleDone = () => {
-    //console.log("handling done")
         const finalTitle = title.trim() === "" ? "untitled" : title;
         const finalContent = content.trim() === "" ? "no content" : content;
 
