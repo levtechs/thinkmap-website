@@ -20,7 +20,7 @@ const SleepingServerPanel = () => (
             💤 Server is sleeping
         </h2>
         <p style={{ fontSize: "1rem", maxWidth: "400px", textAlign: "center" }}>
-            Our backend server is currently asleep. Please check back in a few moments once it wakes up.
+            Our backend server is currently asleep. Please check back in a few moments once it wakes up. You may still view pre-created spaces
         </p>
     </div>
 );

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Environment from "./components/environment";
 import NoteDisplay from "./components/notedisplay";
 import NewNotePanel from "./components/newnote";
+import InfoPanel from "./components/info";
 import LoadingPanel from "./components/loading";
 import SleepingServerPanel from "./components/seversleeping";
 
@@ -40,7 +41,7 @@ export default function Home() {
                 }
             }
             catch {
-                console.error("No environment variable for sever URL");
+                console.error("No environment variable for sever URL")
                 return;
             }
 
@@ -198,6 +199,8 @@ export default function Home() {
                             setLoading(false);
                             setPoints(response.points);
                             setEmbeddings(response.embeddings);
+                            console.log(points)
+                            console.log(embeddings)
                             setIsPanelOpen(false);
                         }}
                         closeNote={() => setIsPanelOpen(false)}
@@ -205,6 +208,23 @@ export default function Home() {
                 )}
                 <NoteDisplay note={selectedNote} />
             </div>
+
+            {/* Floating panel top-left */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: 24,
+                    left: 24,  // <-- changed from right to left
+                    zIndex: 10,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: 12,
+                }}
+            >
+                <InfoPanel/>
+            </div>
+
         </main>
     );
 }
