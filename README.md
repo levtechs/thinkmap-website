@@ -1,36 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+[try it out!](https://thinkmap-website.vercel.app/)
 
-## Getting Started
+[watch the demo](https://thinkmap-website.vercel.app/demo)
 
-First, run the development server:
+Source code - [frontend](https://github.com/levtechs/thinkmap-website) - [backend](https://github.com/levtechs/thinkmap-backend)  
+*(follow me on GitHub!)*
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ThinkMap is an advanced note-taking tool that visualizes your ideas in a dynamic 3D space. To use it, simply add notes by entering a title and some content. Each new note is automatically positioned on a 3D sphere based on its meaning, not just the words it contains. This is made possible through a sentence transformer: a neural network that generates semantic embeddings of your text. These embeddings are then projected using PCA and aligned to fit onto the sphere. As you add more notes, the system adjusts the positions of all points to reflect the new relationships, allowing similar ideas to naturally cluster together. For example, two notes about cartoons will appear near each other even if they use completely different vocabulary. You can continue adding notes one by one, watching your thought landscape evolve in real time.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*Made by Lev Smolsky*
