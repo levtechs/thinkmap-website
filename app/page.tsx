@@ -17,14 +17,11 @@ import TestServer from "./pointslogic/test_server";
 
 export default function Home() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-
     const [points, setPoints] = useState<Point[]>([]);
     const [embeddings, setEmbeddings] = useState<number[][]>([]);
-
     const [isLoading, setLoading] = useState<boolean>(false);
-    const [isServerAwake, setServerAwake] = useState<boolean>(false)
+    const [isServerAwake, setServerAwake] = useState<boolean>(false);
 
     // === On Mount: Embed the blank note ===
     useEffect(() => {
@@ -34,14 +31,13 @@ export default function Home() {
             try {
                 const iSA = await TestServer();
                 if (!iSA) {
-                    console.error("Sever is asleep")
-                    setLoading(false)
+                    console.error("Server is asleep");
+                    setLoading(false);
                     setServerAwake(false);
                     return;
                 }
-            }
-            catch {
-                console.error("No environment variable for sever URL")
+            } catch {
+                console.error("No environment variable for server URL");
                 return;
             }
 
@@ -51,7 +47,6 @@ export default function Home() {
             const response = await GetFirstPoint(blankNote);
             setPoints([response.point]);
             setEmbeddings(response.embeddings);
-
             setLoading(false);
         };
         init();
@@ -59,134 +54,47 @@ export default function Home() {
 
     const handleNoteClick = (id: number) => {
         const point = points.find((p) => p.id === id);
-        if (point && point.note) {
-            setSelectedNote(point.note);
-        } else {
-            console.warn("Note not found for ID:", id);
-        }
+        if (point && point.note) setSelectedNote(point.note);
+        else console.warn("Note not found for ID:", id);
     };
 
-
     return (
-        <main
-            style={{
-                width: "100vw",
-                height: "100vh",
-                backgroundColor: "black",
-                color: "white",
-                position: "relative",
-                overflow: "hidden",
-            }}
-        >
-            {/* 3D environment background, centered */}
-            <div
-                style={{
-                    position: "relative",
-                    width: "100%",
-                    height: "100%",
-                }}
-            >
-                {/* Environment (blurred when loading) */}
+        <main className="w-screen h-screen bg-black text-white relative overflow-hidden">
+            {/* 3D Environment */}
+            <div className="relative w-full h-full">
                 <div
-                    style={{
-                        filter: (isLoading || !isServerAwake) ? "blur(3px)" : "none",
-                        transition: "filter 0.3s ease",
-                        width: "100%",
-                        height: "100%",
-                    }}
+                    className={`w-full h-full transition-filter duration-300 ${
+                        isLoading || !isServerAwake ? "blur-sm" : ""
+                    }`}
                 >
                     <Environment points={points} clickHandler={handleNoteClick} />
                 </div>
 
                 {/* Loading overlay */}
                 {isLoading && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            zIndex: 10,
-                            backdropFilter: "blur(2px)", // optional extra blur
-                        }}
-                    >
+                    <div className="absolute inset-0 flex justify-center items-center z-10 backdrop-blur-sm">
                         <LoadingPanel />
                     </div>
                 )}
-                {/* server sleeping overlay */}
+
+                {/* Server sleeping overlay */}
                 {!isServerAwake && !isLoading && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            zIndex: 10,
-                            backdropFilter: "blur(2px)", // optional extra blur
-                        }}
-                    >
+                    <div className="absolute inset-0 flex justify-center items-center z-10 backdrop-blur-sm">
                         <SleepingServerPanel />
                     </div>
                 )}
             </div>
 
-
-            {/* Header over canvas, centered top */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: 24,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    textAlign: "center",
-                    zIndex: 10,
-                }}
-            >
-                <h1
-                    style={{
-                        fontSize: "3rem",
-                        fontWeight: "800",
-                        letterSpacing: "-0.025em",
-                        color: "rgba(156, 163, 175, 1)",
-                        textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                        margin: 0,
-                    }}
-                >
-          ThinkMap
+            {/* Header */}
+            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-center z-10">
+                <h1 className="text-5xl font-extrabold tracking-tight text-gray-400 drop-shadow-md">
+                    ThinkMap
                 </h1>
-                <p
-                    style={{
-                        fontSize: "0.875rem",
-                        marginTop: 4,
-                        color: "rgba(156, 163, 175, 1)",
-                        marginBottom: 0,
-                    }}
-                >
-          Visualize your thoughts in 3D space
-                </p>
+                <p className="mt-1 text-sm text-gray-400">Visualize your thoughts in 3D space</p>
             </div>
 
             {/* Floating panel top-right */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: 24,
-                    right: 24,
-                    zIndex: 10,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: 12,
-                }}
-            >
+            <div className="absolute top-6 right-6 z-10 flex flex-col items-start gap-3">
                 {!isPanelOpen && (
                     <Button text="+ New Note" onClick={() => setIsPanelOpen(true)} />
                 )}
@@ -195,7 +103,7 @@ export default function Home() {
                     <NewNotePanel
                         submitNote={async (note: Note) => {
                             setLoading(true);
-                            const response = await GetProjectedPoint(note, {points, embeddings});
+                            const response = await GetProjectedPoint(note, { points, embeddings });
                             setLoading(false);
                             setPoints(response.points);
                             setEmbeddings(response.embeddings);
@@ -208,21 +116,9 @@ export default function Home() {
             </div>
 
             {/* Floating panel top-left */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: 24,
-                    left: 24,  // <-- changed from right to left
-                    zIndex: 10,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: 12,
-                }}
-            >
-                <InfoPanel/>
+            <div className="absolute top-6 left-6 z-10 flex flex-col items-start gap-3">
+                <InfoPanel />
             </div>
-
         </main>
     );
 }
