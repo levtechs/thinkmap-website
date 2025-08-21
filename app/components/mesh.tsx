@@ -1,30 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { Vector3 } from "three";
+import { Vector3, PerspectiveCamera } from "three";
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 
 import { Point } from "../types";
-
 import { radius } from "../globals";
 
 interface SpherePointsParams {
-  points: Point[]
-  numLabeled: number
-  clickHandler: (id: number) => void;
+    points: Point[];
+    numLabeled: number;
+    clickHandler: (id: number) => void;
 }
 
-export default function SpherePoints({ points , numLabeled, clickHandler}: SpherePointsParams) {
-
-    const { camera } = useThree();
+export default function SpherePoints({ points, numLabeled, clickHandler }: SpherePointsParams) {
+    const { camera, size } = useThree();
     const [visibleIds, setVisibleIds] = useState<Set<number>>(new Set());
 
+    // Cast camera to PerspectiveCamera
+    const perspectiveCamera = camera as PerspectiveCamera;
+
+    // Determine scale based on screen orientation
+    const aspect = size.width / size.height;
+    let sphereScale = radius * 1.8; // default for landscape
+
+    if (aspect < 1) {
+        // Portrait: fill ~90% of width
+        const distance = perspectiveCamera.position.z;
+        const fovRad = (perspectiveCamera.fov * Math.PI) / 180;
+        const viewHeight = 2 * distance * Math.tan(fovRad / 2); // vertical height in 3D units
+        const viewWidth = viewHeight * aspect;
+
+        sphereScale = (viewWidth) * 0.9; // 0.9 to leave a margin
+    }
+
     useFrame(() => {
-    // Camera forward vector
         const camForward = new Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
 
-        // Find points in front, sorted by distance, show closest 5
         const visible = points
             .map(({ id, position }) => {
                 const toPoint = position.clone().sub(camera.position).normalize();
@@ -37,53 +50,30 @@ export default function SpherePoints({ points , numLabeled, clickHandler}: Spher
             .slice(0, numLabeled);
 
         const newVisibleIds = new Set(visible.map(p => p.id));
-
-        // Update state only if changed
         const changed =
-      newVisibleIds.size !== visibleIds.size ||
-      [...newVisibleIds].some(id => !visibleIds.has(id));
+            newVisibleIds.size !== visibleIds.size ||
+            [...newVisibleIds].some(id => !visibleIds.has(id));
         if (changed) setVisibleIds(newVisibleIds);
     });
 
     return (
-        <group scale={radius*1.8}>
-            {/* Translucent sphere surface for visual context */}
+        <group scale={sphereScale}>
+            {/* Translucent sphere surface */}
             <mesh>
                 <sphereGeometry args={[1, 16, 16]} />
-                <meshBasicMaterial
-                    color="gray"
-                    wireframe
-                    transparent
-                    opacity={0.2}
-                />
+                <meshBasicMaterial color="gray" wireframe transparent opacity={0.2} />
             </mesh>
+
             {points.map(({ id, position, note }) => (
                 <group key={id} position={position}>
-                    <mesh
-                        onClick={() => clickHandler(id)}
-                        castShadow
-                        receiveShadow
-                    >
+                    <mesh onClick={() => clickHandler(id)} castShadow receiveShadow>
                         <sphereGeometry args={[0.05, 16, 16]} />
                         <meshStandardMaterial color="skyblue" />
                     </mesh>
 
                     {visibleIds.has(id) && (
                         <Html distanceFactor={10} position={[0.08, 0.08, 0]}>
-                            <div
-                                style={{
-                                    background: "rgba(128, 128, 128, 0.8)",
-                                    padding: "2px 6px",
-                                    borderRadius: "4px",
-                                    fontSize: "12px",
-                                    fontWeight: "bold",
-                                    color: "#000",
-                                    boxShadow: "0 0 4px rgba(0,0,0,0.5)",
-                                    pointerEvents: "none",
-                                    userSelect: "none",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
+                            <div className="bg-gray-400/80 px-2 py-1 rounded text-xs font-bold text-black shadow-sm pointer-events-none select-none whitespace-nowrap">
                                 {note.name}
                             </div>
                         </Html>

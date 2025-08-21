@@ -23,11 +23,9 @@ export default function Home() {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [isServerAwake, setServerAwake] = useState<boolean>(false);
 
-    // === On Mount: Embed the blank note ===
     useEffect(() => {
         const init = async () => {
             setLoading(true);
-
             try {
                 const iSA = await TestServer();
                 if (!iSA) {
@@ -59,9 +57,9 @@ export default function Home() {
     };
 
     return (
-        <main className="w-screen h-screen bg-black text-white relative overflow-hidden">
+        <main className="w-screen h-screen bg-black text-white relative overflow-hidden flex flex-col justify-center items-center">
             {/* 3D Environment */}
-            <div className="relative w-full h-full">
+            <div className="relative w-full h-full flex-1">
                 <div
                     className={`w-full h-full transition-filter duration-300 ${
                         isLoading || !isServerAwake ? "blur-sm" : ""
@@ -86,19 +84,52 @@ export default function Home() {
             </div>
 
             {/* Header */}
-            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-center z-10">
+            <div className="w-full absolute top-1 left-1/2 transform -translate-x-1/2 text-center z-10 flex flex-col items-center gap-2">
+                {/* "How ThinkMap works" panel above the title */}
+                <div className="md:hidden mb-2 w-max max-w-xs z-50 max-h-158 overflow-y-auto">
+                    <InfoPanel />
+                </div>
+
                 <h1 className="text-5xl font-extrabold tracking-tight text-gray-400 drop-shadow-md">
                     ThinkMap
                 </h1>
                 <p className="mt-1 text-sm text-gray-400">Visualize your thoughts in 3D space</p>
             </div>
 
-            {/* Floating panel top-right */}
-            <div className="absolute top-6 right-6 z-10 flex flex-col items-start gap-3">
+            {/* Landscape layout panels (desktop) */}
+            <div className="hidden md:flex">
+                {/* Top-right */}
+                <div className="absolute top-6 right-6 z-10 flex flex-col items-start gap-3">
+                    {!isPanelOpen && (
+                        <Button text="+ New Note" onClick={() => setIsPanelOpen(true)} />
+                    )}
+                    {isPanelOpen && (
+                        <NewNotePanel
+                            submitNote={async (note: Note) => {
+                                setLoading(true);
+                                const response = await GetProjectedPoint(note, { points, embeddings });
+                                setLoading(false);
+                                setPoints(response.points);
+                                setEmbeddings(response.embeddings);
+                                setIsPanelOpen(false);
+                            }}
+                            closeNote={() => setIsPanelOpen(false)}
+                        />
+                    )}
+                    <NoteDisplay note={selectedNote} />
+                </div>
+
+                {/* Top-left */}
+                <div className="absolute top-6 left-6 z-10 flex flex-col items-start gap-3">
+                    <InfoPanel />
+                </div>
+            </div>
+
+            {/* Portrait layout panels (mobile) */}
+            <div className="md:hidden absolute bottom-0 bg-black/20 backdrop-blur-sm p-4 flex flex-col items-center gap-4 z-10 rounded-xl">
                 {!isPanelOpen && (
                     <Button text="+ New Note" onClick={() => setIsPanelOpen(true)} />
                 )}
-
                 {isPanelOpen && (
                     <NewNotePanel
                         submitNote={async (note: Note) => {
@@ -115,10 +146,6 @@ export default function Home() {
                 <NoteDisplay note={selectedNote} />
             </div>
 
-            {/* Floating panel top-left */}
-            <div className="absolute top-6 left-6 z-10 flex flex-col items-start gap-3">
-                <InfoPanel />
-            </div>
         </main>
     );
 }

@@ -9,6 +9,7 @@ export default function Button({ text, onClick }: Props) {
             onClick={onClick}
             style={{
                 padding: "10px 16px",
+                width: "100%",
                 backgroundColor: "rgba(147, 197, 253, 0.2)",
                 color: "white",
                 border: "1px solid rgba(147, 197, 253, 0.5)",
